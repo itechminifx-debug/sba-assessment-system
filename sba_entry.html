@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBA Entry | Living Spring Adventist Academy</title>
+    <style>
+        :root { --bg: #f8fafc; --card: #ffffff; --primary: #0d9488; --primary-dark: #0f766e; --success: #059669; --danger: #dc2626; --warning: #d97706; --text: #1e293b; --text-light: #64748b; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); min-height: 100vh; }
+        .header { background: white; border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header .brand { font-size: 16px; font-weight: 700; color: var(--text); }
+        .header .brand span { color: var(--primary); }
+        .header a { text-decoration: none; color: var(--primary); font-weight: 600; font-size: 13px; }
+        .main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        .info-bar { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 13px; }
+        .info-bar .item { color: var(--text-light); } .info-bar .item strong { color: var(--text); margin-left: 4px; }
+        
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .card h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+        
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1200px; }
+        table th { background: var(--primary); color: white; padding: 10px 6px; text-align: center; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        table th.sub { background: #0f766e; font-size: 9px; }
+        table td { padding: 6px; border: 1px solid var(--border); text-align: center; color: var(--text); }
+        table td input { width: 50px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 12px; }
+        table td input:focus { outline: none; border-color: var(--primary); }
+        table td.name-input { width: 150px; }
+        table td.name-input input { width: 130px; text-align: left; }
+        table td.calculated { background: #f1f5f9; font-weight: 700; color: var(--primary); }
+        table td.auto { background: #f0fdfa; font-weight: 700; }
+        
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn { padding: 12px 22px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: white; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); } .btn-success { background: var(--success); } .btn-warning { background: var(--warning); color: #1e293b; } .btn-danger { background: var(--danger); }
+        .btn:hover { transform: translateY(-2px); }
+        
+        .toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 14px 28px; border-radius: 50px; font-size: 14px; z-index: 1000; display: none; animation: slideDown 0.3s; }
+        @keyframes slideDown { from { transform: translateX(-50%) translateY(-80px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="brand">📚 Living Spring Adventist Academy — <span>SBA System</span></div>
+        <a href="sba_report.html">📋 View SBA Sheet</a>
+    </div>
+    <div class="main">
+        <div class="info-bar">
+            <div class="item">👤 <strong id="dispTeacher"></strong></div>
+            <div class="item">📖 <strong id="dispSubject"></strong></div>
+            <div class="item">🏫 <strong id="dispClass"></strong></div>
+            <div class="item">📅 <strong id="dispTerm"></strong></div>
+            <div class="item">📆 <strong id="dispYear"></strong></div>
+        </div>
+
+        <div class="card">
+            <h3>📝 School Based Assessment Sheet</h3>
+            <div class="table-wrap">
+                <table id="sbaTable">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">SN</th>
+                            <th rowspan="2" style="width:150px;">NAME</th>
+                            <th>TEST 1</th><th>GROUP WORK</th><th>TEST 2</th><th>PROJECT</th>
+                            <th rowspan="2">SUB TOTAL<br>(60)</th>
+                            <th rowspan="2">CLASS<br>50% (A)</th>
+                            <th rowspan="2">EXAM<br>100%</th>
+                            <th rowspan="2">EXAM<br>50% (B)</th>
+                            <th rowspan="2">TOTAL<br>100%</th>
+                            <th rowspan="2">GRADE</th>
+                            <th rowspan="2">POS</th>
+                            <th rowspan="2">REMARKS</th>
+                        </tr>
+                        <tr>
+                            <th class="sub">(15)</th><th class="sub">(15)</th><th class="sub">(15)</th><th class="sub">(15)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-success" onclick="saveData()">💾 Save to Server</button>
+            <button class="btn btn-primary" onclick="autoCalculate()">🔄 Auto Calculate</button>
+            <button class="btn btn-warning" onclick="addStudent()">➕ Add Row</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑 Clear All</button>
+            <a href="sba_report.html" class="btn btn-primary">📋 View SBA Sheet</a>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        // ⚠️ REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT URL
+        var API_URL = 'https://script.google.com/macros/s/AKfycbzsrGrEp7kSLNY9LL0AhE4ZR3_o6kL_NkSCsvePKlpVJ60q8AyNqe18VbXqrG-4Usox/exec';
+        
+        var rowCount = 25;
+
+        // ==================== API FUNCTIONS ====================
+        async function apiGet(action, params) {
+            var url = API_URL + '?action=' + action;
+            if (params) {
+                Object.keys(params).forEach(function(k) { url += '&' + k + '=' + encodeURIComponent(params[k]); });
+            }
+            try { var r = await fetch(url); return await r.json(); } catch(e) { console.log('API Error:', e); return []; }
+        }
+        
+        async function apiPost(action, data) {
+            try {
+                var r = await fetch(API_URL + '?action=' + action + '&data=' + encodeURIComponent(JSON.stringify(data)));
+                return await r.json();
+            } catch(e) { console.log('API Error:', e); return { success: false }; }
+        }
+
+        // ==================== INITIALIZATION ====================
+        window.onload = async function() {
+            document.getElementById('dispTeacher').textContent = localStorage.getItem('sba_teacher') || '-';
+            document.getElementById('dispSubject').textContent = localStorage.getItem('sba_subject') || '-';
+            document.getElementById('dispClass').textContent = localStorage.getItem('sba_class') || '-';
+            document.getElementById('dispTerm').textContent = localStorage.getItem('sba_term') || '-';
+            document.getElementById('dispYear').textContent = localStorage.getItem('sba_year') || '-';
+            await loadSavedData();
+        };
+
+        // ==================== LOAD DATA FROM GOOGLE SHEETS ====================
+        async function loadSavedData() {
+            var teacher = localStorage.getItem('sba_teacher');
+            var subject = localStorage.getItem('sba_subject');
+            var cls = localStorage.getItem('sba_class');
+            var term = localStorage.getItem('sba_term');
+            
+            // Try Google Sheets first
+            var serverData = await apiGet('getSBA', { teacher: teacher, subject: subject, class: cls, term: term });
+            
+            var saved;
+            if (serverData && serverData.length > 0) {
+                // Convert from server format
+                saved = serverData.map(function(d) {
+                    return {
+                        name: d.studentName || '',
+                        test1: d.test1 || '',
+                        group: d.groupWork || '',
+                        test2: d.test2 || '',
+                        project: d.project || '',
+                        subtotal: d.subTotal || '',
+                        classA: d.classA || '',
+                        exam: d.exam || '',
+                        examB: d.examB || '',
+                        total: d.total || '',
+                        grade: d.grade || '',
+                        position: '',
+                        remarks: ''
+                    };
+                });
+                // Also update localStorage
+                localStorage.setItem('sba_data', JSON.stringify(saved));
+            } else {
+                // Fallback to localStorage
+                saved = JSON.parse(localStorage.getItem('sba_data')) || [];
+            }
+            
+            // Render table
+            var tbody = document.getElementById('tableBody');
+            var html = '';
+            for (var i = 0; i < rowCount; i++) {
+                var data = saved[i] || {};
+                html += '<tr>';
+                html += '<td>' + (i+1) + '</td>';
+                html += '<td class="name-input"><input type="text" id="name_' + i + '" value="' + (data.name || '') + '" placeholder="Student name"></td>';
+                html += '<td><input type="number" id="test1_' + i + '" value="' + (data.test1 || '') + '" min="0" max="15" oninput="calcRow(' + i + ')"></td>';
+                html += '<td><input type="number" id="group_' + i + '" value="' + (data.group || '') + '" min="0" max="15" oninput="calcRow(' + i + ')"></td>';
+                html += '<td><input type="number" id="test2_' + i + '" value="' + (data.test2 || '') + '" min="0" max="15" oninput="calcRow(' + i + ')"></td>';
+                html += '<td><input type="number" id="project_' + i + '" value="' + (data.project || '') + '" min="0" max="15" oninput="calcRow(' + i + ')"></td>';
+                html += '<td class="calculated" id="subtotal_' + i + '">' + (data.subtotal || '') + '</td>';
+                html += '<td class="auto" id="classA_' + i + '">' + (data.classA || '') + '</td>';
+                html += '<td><input type="number" id="exam_' + i + '" value="' + (data.exam || '') + '" min="0" max="100" oninput="calcRow(' + i + ')"></td>';
+                html += '<td class="auto" id="examB_' + i + '">' + (data.examB || '') + '</td>';
+                html += '<td class="auto" id="total_' + i + '">' + (data.total || '') + '</td>';
+                html += '<td class="auto" id="grade_' + i + '">' + (data.grade || '') + '</td>';
+                html += '<td class="auto" id="position_' + i + '">' + (data.position || '') + '</td>';
+                html += '<td class="auto" id="remarks_' + i + '">' + (data.remarks || '') + '</td>';
+                html += '</tr>';
+            }
+            tbody.innerHTML = html;
+            
+            // Auto-calculate if data exists
+            if (saved.length > 0) autoCalculate();
+        }
+
+        // ==================== CALCULATIONS ====================
+        function calcRow(i) {
+            var t1 = parseFloat(document.getElementById('test1_'+i).value) || 0;
+            var gw = parseFloat(document.getElementById('group_'+i).value) || 0;
+            var t2 = parseFloat(document.getElementById('test2_'+i).value) || 0;
+            var pr = parseFloat(document.getElementById('project_'+i).value) || 0;
+            var exam = parseFloat(document.getElementById('exam_'+i).value) || 0;
+
+            var subtotal = Math.min(t1 + gw + t2 + pr, 60);
+            var classA = parseFloat(((subtotal / 60) * 50).toFixed(1));
+            var examB = parseFloat(((exam / 100) * 50).toFixed(1));
+            var total = parseFloat((classA + examB).toFixed(1));
+            var grade = getGrade(total);
+
+            document.getElementById('subtotal_'+i).textContent = subtotal;
+            document.getElementById('classA_'+i).textContent = classA;
+            document.getElementById('examB_'+i).textContent = examB;
+            document.getElementById('total_'+i).textContent = total;
+            document.getElementById('grade_'+i).textContent = grade;
+            document.getElementById('remarks_'+i).textContent = getRemarks(total);
+        }
+
+        function getGrade(s) { if (s>=80) return 1; if (s>=70) return 2; if (s>=60) return 3; if (s>=50) return 4; if (s>=40) return 5; return 6; }
+        function getRemarks(s) { if (s>=80) return 'Excellent'; if (s>=70) return 'Very Good'; if (s>=60) return 'Good'; if (s>=50) return 'Average'; if (s>=40) return 'Below Average'; return 'Weak'; }
+
+        function autoCalculate() {
+            for (var i = 0; i < rowCount; i++) {
+                var name = document.getElementById('name_'+i);
+                if (name && name.value.trim()) calcRow(i);
+            }
+            // Calculate positions
+            var totals = [];
+            for (var i = 0; i < rowCount; i++) {
+                var name = document.getElementById('name_'+i);
+                if (name && name.value.trim()) {
+                    totals.push({ index: i, total: parseFloat(document.getElementById('total_'+i).textContent) || 0 });
+                }
+            }
+            totals.sort(function(a,b){ return b.total - a.total; });
+            totals.forEach(function(t, rank){
+                document.getElementById('position_'+t.index).textContent = getPosition(rank+1);
+            });
+            showToast('✅ All calculations done!');
+        }
+
+        function getPosition(p) { if (p===1) return '1st'; if (p===2) return '2nd'; if (p===3) return '3rd'; return p+'th'; }
+
+        // ==================== SAVE TO GOOGLE SHEETS ====================
+        async function saveData() {
+            var teacher = localStorage.getItem('sba_teacher');
+            var subject = localStorage.getItem('sba_subject');
+            var cls = localStorage.getItem('sba_class');
+            var term = localStorage.getItem('sba_term');
+            var year = localStorage.getItem('sba_year');
+            
+            var data = [];
+            var localData = [];
+            
+            for (var i = 0; i < rowCount; i++) {
+                var nameEl = document.getElementById('name_'+i);
+                if (nameEl && nameEl.value.trim()) {
+                    var row = {
+                        teacher: teacher, subject: subject, class: cls, term: term, year: year,
+                        studentName: nameEl.value.trim(),
+                        test1: document.getElementById('test1_'+i).value || '0',
+                        groupWork: document.getElementById('group_'+i).value || '0',
+                        test2: document.getElementById('test2_'+i).value || '0',
+                        project: document.getElementById('project_'+i).value || '0',
+                        subTotal: document.getElementById('subtotal_'+i).textContent,
+                        classA: document.getElementById('classA_'+i).textContent,
+                        exam: document.getElementById('exam_'+i).value || '0',
+                        examB: document.getElementById('examB_'+i).textContent,
+                        total: document.getElementById('total_'+i).textContent,
+                        grade: document.getElementById('grade_'+i).textContent
+                    };
+                    data.push(row);
+                    
+                    localData.push({
+                        name: row.studentName, test1: row.test1, group: row.groupWork,
+                        test2: row.test2, project: row.project, subtotal: row.subTotal,
+                        classA: row.classA, exam: row.exam, examB: row.examB,
+                        total: row.total, grade: row.grade,
+                        position: document.getElementById('position_'+i).textContent,
+                        remarks: document.getElementById('remarks_'+i).textContent
+                    });
+                }
+            }
+            
+            if (data.length === 0) { showToast('No data to save!'); return; }
+            
+            // Save to Google Sheets
+            var result = await apiPost('saveSBA', data);
+            
+            // Also save to localStorage as backup
+            localStorage.setItem('sba_data', JSON.stringify(localData));
+            
+            if (result && result.success) {
+                showToast('✅ SBA data saved to server! All devices can now access it.');
+            } else {
+                showToast('⚠️ Saved locally. Server sync may have failed. Check your API URL.');
+            }
+        }
+
+        function addStudent() { rowCount++; loadSavedData(); showToast('Row added!'); }
+        
+        function clearAll() { 
+            if (!confirm('Clear all data? This will also clear from the server.')) return; 
+            localStorage.removeItem('sba_data'); 
+            rowCount = 25; 
+            loadSavedData(); 
+            showToast('Cleared! Reload to see empty table.'); 
+        }
+        
+        function showToast(msg) { 
+            var t = document.getElementById('toast'); 
+            t.textContent = msg; t.style.display = 'block'; 
+            setTimeout(function() { t.style.display = 'none'; }, 3000); 
+        }
+    </script>
+</body>
+</html>
