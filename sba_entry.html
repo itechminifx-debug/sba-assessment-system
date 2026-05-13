@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBA Entry | Living Spring Adventist Academy</title>
+    <style>
+        :root { --bg: #f8fafc; --card: #ffffff; --primary: #0d9488; --primary-dark: #0f766e; --success: #059669; --danger: #dc2626; --warning: #d97706; --text: #1e293b; --text-light: #64748b; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); min-height: 100vh; }
+        .header { background: white; border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .header .brand { font-size: 16px; font-weight: 700; color: var(--text); } .header .brand span { color: var(--primary); }
+        .header a { text-decoration: none; color: var(--primary); font-weight: 600; font-size: 13px; }
+        .main { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .info-bar { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; font-size: 13px; }
+        .info-bar .item { color: var(--text-light); } .info-bar .item strong { color: var(--text); margin-left: 4px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .card h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1200px; }
+        table th { background: var(--primary); color: white; padding: 10px 6px; text-align: center; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        table th.sub { background: #0f766e; font-size: 9px; }
+        table td { padding: 6px; border: 1px solid var(--border); text-align: center; color: var(--text); }
+        table td input { width: 50px; padding: 6px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 12px; }
+        table td input:focus { outline: none; border-color: var(--primary); }
+        table td.name-input { width: 150px; } table td.name-input input { width: 130px; text-align: left; }
+        table td.calculated { background: #f1f5f9; font-weight: 700; color: var(--primary); }
+        table td.auto { background: #f0fdfa; font-weight: 700; }
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn { padding: 12px 22px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: white; transition: all 0.2s; text-decoration: none; }
+        .btn-primary { background: var(--primary); } .btn-success { background: var(--success); } .btn-warning { background: var(--warning); color: #1e293b; } .btn-danger { background: var(--danger); }
+        .btn:hover { transform: translateY(-2px); }
+        .toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 14px 28px; border-radius: 50px; font-size: 14px; z-index: 1000; display: none; animation: slideDown 0.3s; }
+        @keyframes slideDown { from { transform: translateX(-50%) translateY(-80px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+    <div class="header"><div class="brand">📚 Living Spring Adventist Academy — <span>SBA System</span></div><a href="sba_report.html">📋 View SBA Sheet</a></div>
+    <div class="main">
+        <div class="info-bar">
+            <div class="item">👤 <strong id="dispTeacher"></strong></div><div class="item">📖 <strong id="dispSubject"></strong></div><div class="item">🏫 <strong id="dispClass"></strong></div><div class="item">📅 <strong id="dispTerm"></strong></div><div class="item">📆 <strong id="dispYear"></strong></div>
+        </div>
+        <div class="card"><h3>📝 School Based Assessment Sheet</h3><div class="table-wrap"><table id="sbaTable"><thead><tr><th rowspan="2">SN</th><th rowspan="2" style="width:150px;">NAME</th><th>TEST 1</th><th>GROUP WORK</th><th>TEST 2</th><th>PROJECT</th><th rowspan="2">SUB TOTAL<br>(60)</th><th rowspan="2">CLASS<br>50% (A)</th><th rowspan="2">EXAM<br>100%</th><th rowspan="2">EXAM<br>50% (B)</th><th rowspan="2">TOTAL<br>100%</th><th rowspan="2">GRADE</th><th rowspan="2">POS</th><th rowspan="2">REMARKS</th></tr><tr><th class="sub">(15)</th><th class="sub">(15)</th><th class="sub">(15)</th><th class="sub">(15)</th></tr></thead><tbody id="tableBody"></tbody></table></div></div>
+        <div class="btn-row">
+            <button class="btn btn-success" onclick="saveData()">💾 Save to Server</button>
+            <button class="btn btn-primary" onclick="autoCalculate()">🔄 Auto Calculate</button>
+            <button class="btn btn-warning" onclick="addRow()">➕ Add Row</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑 Clear All</button>
+            <a href="sba_report.html" class="btn btn-primary">📋 View SBA Sheet</a>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <script>
+        var API_URL = 'https://script.google.com/macros/s/AKfycbxWuC0LNLMSra8s-qwNrUkCfLK4ZRtPbrz2uLYkQmcSXYz4Nxv5UcI0PxTnJ9G2IBRx/exec';
+        var rowCount = 25;
+
+        async function apiGet(action, params) {
+            var url = API_URL + '?action=' + action;
+            if (params) { Object.keys(params).forEach(function(k) { url += '&' + k + '=' + encodeURIComponent(params[k]); }); }
+            try { var r = await fetch(url); return await r.json(); } catch(e) { return []; }
+        }
+        async function apiPost(action, data) {
+            try { var r = await fetch(API_URL + '?action=' + action + '&data=' + encodeURIComponent(JSON.stringify(data))); return await r.json(); } catch(e) { return {success:false}; }
+        }
+
+        window.onload = async function() {
+            document.getElementById('dispTeacher').textContent = localStorage.getItem('sba_teacher')||'-';
+            document.getElementById('dispSubject').textContent = localStorage.getItem('sba_subject')||'-';
+            document.getElementById('dispClass').textContent = localStorage.getItem('sba_class')||'-';
+            document.getElementById('dispTerm').textContent = localStorage.getItem('sba_term')||'-';
+            document.getElementById('dispYear').textContent = localStorage.getItem('sba_year')||'-';
+            await loadData();
+        };
+
+        async function loadData() {
+            var teacher = localStorage.getItem('sba_teacher');
+            var subject = localStorage.getItem('sba_subject');
+            var cls = localStorage.getItem('sba_class');
+            var term = localStorage.getItem('sba_term');
+            var serverData = await apiGet('getSBA', {teacher:teacher, subject:subject, class:cls, term:term});
+            var saved;
+            if (serverData && serverData.length > 0) {
+                saved = serverData.map(function(d){ 
+                    return {
+                        name:d.studentName||'', test1:d.test1||'', group:d.groupWork||'', test2:d.test2||'', 
+                        project:d.project||'', subtotal:d.subTotal||'', classA:d.classA||'', exam:d.exam||'',
+                        examB:d.examB||'', total:d.total||'', grade:d.grade||'',
+                        position:d.position||'', remarks:d.remarks||''
+                    }; 
+                });
+                localStorage.setItem('sba_data', JSON.stringify(saved));
+            } else { saved = JSON.parse(localStorage.getItem('sba_data')) || []; }
+            var tbody = document.getElementById('tableBody'), html = '';
+            for (var i=0; i<rowCount; i++) {
+                var d = saved[i] || {};
+                html += '<tr><td>'+(i+1)+'</td><td class="name-input"><input type="text" id="name_'+i+'" value="'+(d.name||'')+'" placeholder="Student name"></td>';
+                html += '<td><input type="number" id="test1_'+i+'" value="'+(d.test1||'')+'" min="0" max="15" oninput="calc('+i+')"></td>';
+                html += '<td><input type="number" id="group_'+i+'" value="'+(d.group||'')+'" min="0" max="15" oninput="calc('+i+')"></td>';
+                html += '<td><input type="number" id="test2_'+i+'" value="'+(d.test2||'')+'" min="0" max="15" oninput="calc('+i+')"></td>';
+                html += '<td><input type="number" id="project_'+i+'" value="'+(d.project||'')+'" min="0" max="15" oninput="calc('+i+')"></td>';
+                html += '<td class="calculated" id="subtotal_'+i+'">'+(d.subtotal||'')+'</td>';
+                html += '<td class="auto" id="classA_'+i+'">'+(d.classA||'')+'</td>';
+                html += '<td><input type="number" id="exam_'+i+'" value="'+(d.exam||'')+'" min="0" max="100" oninput="calc('+i+')"></td>';
+                html += '<td class="auto" id="examB_'+i+'">'+(d.examB||'')+'</td>';
+                html += '<td class="auto" id="total_'+i+'">'+(d.total||'')+'</td>';
+                html += '<td class="auto" id="grade_'+i+'">'+(d.grade||'')+'</td>';
+                html += '<td class="auto" id="position_'+i+'">'+(d.position||'')+'</td>';
+                html += '<td class="auto" id="remarks_'+i+'">'+(d.remarks||'')+'</td></tr>';
+            }
+            tbody.innerHTML = html;
+            if (saved.length > 0) autoCalculate();
+        }
+
+        function calc(i) {
+            var t1=parseFloat(document.getElementById('test1_'+i).value)||0, gw=parseFloat(document.getElementById('group_'+i).value)||0, t2=parseFloat(document.getElementById('test2_'+i).value)||0, pr=parseFloat(document.getElementById('project_'+i).value)||0, exam=parseFloat(document.getElementById('exam_'+i).value)||0;
+            var sub=Math.min(t1+gw+t2+pr,60), a=parseFloat(((sub/60)*50).toFixed(1)), b=parseFloat(((exam/100)*50).toFixed(1)), total=parseFloat((a+b).toFixed(1));
+            document.getElementById('subtotal_'+i).textContent=sub; document.getElementById('classA_'+i).textContent=a; document.getElementById('examB_'+i).textContent=b; document.getElementById('total_'+i).textContent=total; document.getElementById('grade_'+i).textContent=getGrade(total); document.getElementById('remarks_'+i).textContent=getRemarks(total);
+        }
+        function getGrade(s){if(s>=80)return 1;if(s>=70)return 2;if(s>=60)return 3;if(s>=50)return 4;if(s>=40)return 5;return 6;}
+        function getRemarks(s){if(s>=80)return'Excellent';if(s>=70)return'Very Good';if(s>=60)return'Good';if(s>=50)return'Average';if(s>=40)return'Below Average';return'Weak';}
+
+        function autoCalculate(){
+            for(var i=0;i<rowCount;i++){var n=document.getElementById('name_'+i);if(n&&n.value.trim())calc(i);}
+            var totals=[];
+            for(var i=0;i<rowCount;i++){var n=document.getElementById('name_'+i);if(n&&n.value.trim())totals.push({index:i,total:parseFloat(document.getElementById('total_'+i).textContent)||0});}
+            totals.sort(function(a,b){return b.total-a.total;});
+            totals.forEach(function(t,r){document.getElementById('position_'+t.index).textContent=(r+1===1?'1st':(r+1===2?'2nd':(r+1===3?'3rd':(r+1)+'th')));});
+            showToast('✅ Calculations done!');
+        }
+
+        async function saveData(){
+            var teacher=localStorage.getItem('sba_teacher'),subject=localStorage.getItem('sba_subject'),cls=localStorage.getItem('sba_class'),term=localStorage.getItem('sba_term'),year=localStorage.getItem('sba_year');
+            var data=[],localData=[];
+            for(var i=0;i<rowCount;i++){
+                var n=document.getElementById('name_'+i);
+                if(n&&n.value.trim()){
+                    var row={
+                        teacher:teacher,subject:subject,class:cls,term:term,year:year,
+                        studentName:n.value.trim(),
+                        test1:document.getElementById('test1_'+i).value||'0',
+                        groupWork:document.getElementById('group_'+i).value||'0',
+                        test2:document.getElementById('test2_'+i).value||'0',
+                        project:document.getElementById('project_'+i).value||'0',
+                        subTotal:document.getElementById('subtotal_'+i).textContent,
+                        classA:document.getElementById('classA_'+i).textContent,
+                        exam:document.getElementById('exam_'+i).value||'0',
+                        examB:document.getElementById('examB_'+i).textContent,
+                        total:document.getElementById('total_'+i).textContent,
+                        grade:document.getElementById('grade_'+i).textContent,
+                        position:document.getElementById('position_'+i).textContent,
+                        remarks:document.getElementById('remarks_'+i).textContent
+                    };
+                    data.push(row);
+                    localData.push({
+                        name:row.studentName,test1:row.test1,group:row.groupWork,test2:row.test2,project:row.project,
+                        subtotal:row.subTotal,classA:row.classA,exam:row.exam,examB:row.examB,total:row.total,
+                        grade:row.grade,position:row.position,remarks:row.remarks
+                    });
+                }
+            }
+            if(data.length===0){showToast('⚠️ No data to save! Enter student names and scores first.');return;}
+            var result=await apiPost('saveSBA',data);
+            localStorage.setItem('sba_data',JSON.stringify(localData));
+            if(result&&result.success){showToast('✅ Saved to server! Position & Remarks included.');}else{showToast('⚠️ Saved locally. Check your API URL.');}
+        }
+
+        function addRow(){rowCount++;loadData();}
+        function clearAll(){if(!confirm('Clear all data?'))return;localStorage.removeItem('sba_data');rowCount=25;loadData();showToast('Cleared!');}
+        function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none';},3000);}
+    </script>
+</body>
+</html>
